@@ -1,0 +1,19 @@
+---
+# ServiceMonitor specifically for k6 TestRun CRD
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: k6-testrun-monitor
+  labels:
+    release: monitoring  # Match the Prometheus operator release name
+spec:
+  selector:
+    matchLabels:
+      app: k6
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+  - port: http-api
+    path: /metrics
+    interval: 5s

@@ -1,0 +1,58 @@
+# k8s/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscale-demo
+  labels:
+    app: autoscale-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoscale-demo
+  template:
+    metadata:
+      labels:
+        app: autoscale-demo
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: autoscale-demo
+        image: autoscale-demo:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            memory: "512Mi"
+---
+# Update your service to include the correct port name
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoscale-demo
+  labels:
+    app: autoscale-demo
+spec:
+  selector:
+    app: autoscale-demo
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http  # This name is referenced by the ServiceMonitor
+  type: ClusterIP

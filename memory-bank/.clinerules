@@ -1,0 +1,73 @@
+# Cline Rules for Kubernetes Autoscaling Demo
+
+## Project Patterns
+
+### Docker Image Selection
+- Prefer Alpine-based images for smaller footprint when possible
+- For Java applications, ensure the selected image has proper container support
+- Amazon Corretto is the preferred JDK distribution for this project
+- Explicitly install required tools (like wget) that may not be included in Alpine images
+
+### Docker Build Process
+- Use multi-stage builds to separate build and runtime environments
+- Build stage should include all necessary tools and dependencies for compilation
+- Runtime stage should be minimal and only include what's needed to run the application
+- Ensure proper file permissions when copying files between stages
+
+### Kubernetes Configuration
+- Resource limits and requests should always be specified
+- Use NodePort services for demo accessibility
+- HPA should be configured with demo-friendly stabilization windows (faster than production defaults)
+
+### Java Application
+- Use container-aware JVM settings
+- Set MaxRAMPercentage to 75% to leave headroom for JVM overhead
+- Run as non-root user for security
+- Always include a main application class with @SpringBootApplication annotation
+- Implement graceful shutdown to handle Kubernetes pod termination properly
+- Use Spring Boot's built-in graceful shutdown support
+- Check for shutdown signals in long-running operations
+
+### Monitoring
+- Prometheus and Grafana are the standard monitoring tools
+- Expose metrics via Spring Actuator and Micrometer
+
+## User Preferences
+- Prefer comprehensive documentation
+- Favor educational value over production optimization
+- Demonstrate both successful patterns and common mistakes
+
+## Critical Implementation Paths
+1. Docker build → Kind load → Kubernetes deployment
+2. Metrics Server → HPA configuration → Autoscaling
+3. Load testing → Resource utilization → Pod scaling
+4. Development workflows:
+   - Local development: `dev-mode.sh` → Hot reloading → Local testing
+   - Cluster deployment: `rebuild-deploy.sh` → Kind load → Kubernetes rollout
+   - Monitoring: `monitor.sh` → Multiple terminal views → Grafana dashboard
+
+## Known Challenges
+- Alpine images may have compatibility issues with some Java applications
+- Container resource limits must be properly configured for effective autoscaling
+- Health checks require wget which must be available in the container
+
+### Load Testing
+- Use the TestRun CRD instead of the deprecated K6 CRD
+- Configure load tests with realistic ramp-up and ramp-down periods
+- Include appropriate thresholds for error rates and response times
+
+## Project Evolution
+- Started with eclipse-temurin base image
+- Switched to Amazon Corretto for better compatibility
+- Converted to multi-stage Docker build for improved build process
+- Added missing main application class
+- Updated K6 load test configuration to use TestRun CRD
+- Memory Bank documentation established for knowledge persistence
+- Development workflow improved with specialized scripts
+
+## Development Workflow Patterns
+- Use `dev-mode.sh` for rapid local development with hot reloading
+- Use `rebuild-deploy.sh` for testing in the Kubernetes environment
+- Use `monitor.sh` to set up monitoring terminals for observing autoscaling behavior
+- Use `setup-demo.sh` for initial environment setup
+- Use `run-demo.sh` for guided demonstration of autoscaling concepts

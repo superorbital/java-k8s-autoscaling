@@ -1,0 +1,67 @@
+# Java
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar.md5
+.mvn/wrapper/maven-wrapper.jar.sha1
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code
+.vscode/
+.code-workspace
+
+# OS specific
+.DS_Store
+Thumbs.db
+.directory
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Kubernetes
+# No ignores as k8s configuration files are part of the project
+
+# Docker
+# No ignores as Docker files are part of the project
+
+# Application specific
+application-local.properties
+application-local.yml

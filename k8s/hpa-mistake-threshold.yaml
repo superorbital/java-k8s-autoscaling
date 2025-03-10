@@ -1,0 +1,19 @@
+# k8s/hpa-mistake-threshold.yaml - Example of incorrect thresholds
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: autoscale-demo-threshold-mistake
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: autoscale-demo
+  minReplicas: 2
+  maxReplicas: 2  # Same as minReplicas: no scaling will happen
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 20  # Too low, will cause premature scaling

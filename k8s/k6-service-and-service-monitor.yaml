@@ -1,0 +1,30 @@
+---
+# Service for k6 metrics
+apiVersion: v1
+kind: Service
+metadata:
+  name: k6-prometheus
+  labels:
+    app: k6
+spec:
+  ports:
+  - port: 5656
+    name: prometheus
+  selector:
+    k6_cr: autoscale-demo-load-test
+---
+# ServiceMonitor for Prometheus to scrape k6 metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: k6-service-monitor
+  labels:
+    release: monitoring  # Match the Prometheus operator release name
+spec:
+  selector:
+    matchLabels:
+      k6_cr: autoscale-demo-load-test
+  endpoints:
+  - port: prometheus
+    path: /metrics
+    interval: 15s

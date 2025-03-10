@@ -1,0 +1,15 @@
+# k8s/app-service-monitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: autoscale-demo-monitor
+  labels:
+    release: monitoring  # Match the Prometheus operator release name
+spec:
+  selector:
+    matchLabels:
+      app: autoscale-demo  # Must match your service labels
+  endpoints:
+  - port: http  # Must match your service port name
+    path: /actuator/prometheus
+    interval: 5s
