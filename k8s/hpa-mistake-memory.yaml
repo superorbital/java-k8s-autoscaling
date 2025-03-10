@@ -1,4 +1,4 @@
-# k8s/hpa-mistake-memory.yaml - Example of a common mistake using memory
+# k8s/hpa-mistake-memory.yaml - Example of a common mistake using memory and CPU
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,4 +16,10 @@ spec:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 70
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80

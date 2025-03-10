@@ -83,6 +83,10 @@ echo "Waiting for monitoring stack to be ready..."
 kubectl wait --for=condition=available --timeout=120s deployment/monitoring-kube-prometheus-operator
 kubectl wait --for=condition=available --timeout=120s deployment/monitoring-grafana
 
+# Apply Grafana dashboards
+echo "Applying Grafana dashboards..."
+kubectl apply -f 'k8s/grafana-dashboard-*.yaml'
+
 # Step 5: Install k6 operator for Kubernetes-native load testing
 echo "Installing k6 operator..."
 kubectl apply -f https://raw.githubusercontent.com/grafana/k6-operator/main/bundle.yaml

@@ -29,8 +29,8 @@ RUN apk add --no-cache wget
 # Add a non-root user to run the app
 RUN addgroup -S spring && adduser -S spring -G spring
 
-# Set JVM options for containers
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+# Set JVM options for containers - explicitly set heap size to 80% of container memory (512Mi * 0.8 = ~410Mi)
+ENV JAVA_OPTS="-XX:+UseContainerSupport -Xms410m -Xmx410m"
 
 # Create directory for the application
 WORKDIR /app

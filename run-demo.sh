@@ -26,9 +26,9 @@ read -p "Press ENTER when monitoring windows are ready."
 echo ""
 echo "Opening Grafana in your browser..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  open http://localhost:3000
+  open http://localhost:3000/d/java-k8s-autoscaling-k6-dashboard/k6-prometheus
 else
-  xdg-open http://localhost:3000 &> /dev/null || echo "Please open http://localhost:3000 in your browser."
+  xdg-open http://localhost:3000/d/java-k8s-autoscaling-k6-dashboard/k6-prometheus &> /dev/null || echo "Please open http://localhost:3000/d/java-k8s-autoscaling-k6-dashboard/k6-prometheus in your browser."
 fi
 
 echo ""

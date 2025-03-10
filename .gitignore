@@ -65,3 +65,5 @@ logs/
 # Application specific
 application-local.properties
 application-local.yml
+
+target/

@@ -11,8 +11,6 @@ This demo provides a complete environment to:
 - Trigger autoscaling with k6 load tests
 - Showcase both successful autoscaling and common mistakes
 
-![Kubernetes Autoscaling](https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/hpa/images/hpa.svg)
-
 ## Prerequisites
 
 - Docker
@@ -26,7 +24,7 @@ This demo provides a complete environment to:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/autoscaling-demo.git
+git clone https://github.com/superorbital/java-k8s-autoscaling.git
 cd autoscaling-demo
 ```
 
@@ -95,10 +93,9 @@ kubectl get hpa -w
 
 ### Development Workflow
 
-The project includes several scripts to improve the development experience:
+The project includes a couple of scripts to improve the development experience:
 
-- `rebuild-deploy.sh`: Rebuilds and redeploys the application to the kind cluster
-- `dev-mode.sh`: Runs the application locally with hot reloading
+- `rebuild-deploy.sh`: Rebuilds and redeploys the application to the already-running kind cluster
 - `monitor.sh`: Sets up monitoring terminals to track autoscaling behavior
 
 ## Project Components
@@ -204,7 +201,7 @@ kind delete cluster --name autoscale-demo
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License](LICENSE.txt)
 
 ## Acknowledgements
 
