@@ -1,12 +1,12 @@
 # Kubernetes Autoscaling Demo
 
-A practical demonstration of Kubernetes Horizontal Pod Autoscaling (HPA) using a Spring Boot application that generates controllable CPU and memory load. This project serves as an educational tool to understand how Kubernetes automatically scales resources based on demand.
+A practical demonstration of Kubernetes Horizontal Pod Autoscaling (HPA) using a Spring Boot application that generates controllable CPU load. This project serves as an educational tool to understand how Kubernetes automatically scales resources based on demand.
 
 ## Overview
 
 This demo provides a complete environment to:
 - Demonstrate Kubernetes HPA functionality with a real application
-- Generate CPU and memory load on demand through REST endpoints
+- Generate CPU load on demand through a REST endpoint
 - Visualize scaling events with Prometheus and Grafana
 - Trigger autoscaling with k6 load tests
 - Showcase both successful autoscaling and common mistakes
@@ -102,10 +102,9 @@ The project includes a couple of scripts to improve the development experience:
 
 ### Spring Boot Application
 
-The core application exposes endpoints to generate controlled CPU and memory load:
+The core application exposes an endpoint to generate controlled CPU load:
 
 - `/api/cpu-load?durationSeconds=5&intensity=80`: Generates CPU load with configurable duration and intensity
-- `/api/memory-load?sizeMB=10&durationSeconds=10`: Allocates memory with configurable size and duration
 
 ### Kubernetes Configuration
 

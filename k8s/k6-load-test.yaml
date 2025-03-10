@@ -31,9 +31,9 @@ data:
         // Steady load for 1 minute
         { duration: '1m', target: 50 },
         // Increase to peak: 50 to 200 users over 2 minutes
-        { duration: '2m', target: 200 },
+        { duration: '1m', target: 200 },
         // Sustain peak load for 2 minutes
-        { duration: '2m', target: 200 },
+        { duration: '30m', target: 200 },
         // Gradual ramp-down over 30 seconds
         { duration: '30s', target: 0 },
       ],
