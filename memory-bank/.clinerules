@@ -20,13 +20,24 @@
 - HPA should be configured with demo-friendly stabilization windows (faster than production defaults)
 
 ### Java Application
-- Use container-aware JVM settings
-- Set MaxRAMPercentage to 75% to leave headroom for JVM overhead
+- Use container-aware JVM settings with explicit heap sizes
+- Set both -Xms and -Xmx to the same value (80% of container memory limit)
+- Avoid percentage-based settings like MaxRAMPercentage when using memory-based HPA
 - Run as non-root user for security
 - Always include a main application class with @SpringBootApplication annotation
 - Implement graceful shutdown to handle Kubernetes pod termination properly
 - Use Spring Boot's built-in graceful shutdown support
 - Check for shutdown signals in long-running operations
+
+### JVM and Kubernetes Autoscaling
+- Be cautious with memory-based HPA for JVM applications
+- JVM allocates heap memory upfront which can trigger premature scaling
+- Use explicit heap settings (-Xms and -Xmx) instead of percentage-based allocation
+- Set heap size to match the expected memory usage (typically 80% of container limit)
+- When company Helm charts enable both CPU and memory metrics by default:
+  - Ensure JVM heap settings align with HPA thresholds
+  - Consider disabling memory-based scaling for JVM applications
+  - Document the interaction between JVM memory settings and HPA configuration
 
 ### Monitoring
 - Prometheus and Grafana are the standard monitoring tools

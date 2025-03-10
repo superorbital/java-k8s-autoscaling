@@ -102,6 +102,8 @@ mvn wrapper:wrapper
 ./mvnw clean package
 
 echo "Building Docker image..."
+echo "Note: The Dockerfile configures JVM with explicit heap settings (-Xms410m -Xmx410m)"
+echo "      This is 80% of the container memory limit (512Mi) to prevent premature scaling with memory-based HPA"
 docker build -t autoscale-demo:latest .
 
 echo "Loading image into kind cluster..."

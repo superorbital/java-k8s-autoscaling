@@ -48,8 +48,18 @@ open_terminal "kubectl get pods -w" "Pods Monitor"
 # Terminal 3: Watch CPU metrics
 open_terminal "kubectl top pods --containers -l app=autoscale-demo --watch" "CPU Monitor"
 
+# Terminal 4: Watch JVM metrics (if jq is available)
+if command_exists jq; then
+  open_terminal "watch -n 5 'kubectl exec -it \$(kubectl get pods -l app=autoscale-demo -o jsonpath=\"{.items[0].metadata.name}\") -- java -Xms5m -Xmx20m -cp /app/app.jar -XX:+PrintFlagsFinal -version | grep -i heapsize'" "JVM Heap Monitor"
+fi
+
 echo ""
 echo "Monitoring terminals have been opened."
+echo ""
+echo "Note about JVM Memory Settings:"
+echo "- The application uses explicit heap settings (-Xms410m -Xmx410m)"
+echo "- This is 80% of the container memory limit (512Mi)"
+echo "- Fixed heap size prevents premature scaling with memory-based HPA"
 echo ""
 echo "To access the Grafana dashboard:"
 if command_exists open; then
