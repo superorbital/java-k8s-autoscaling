@@ -61,7 +61,8 @@ The development environment requires:
 ### JVM Configuration
 - The JVM is configured with container-aware settings:
   - UseContainerSupport enabled
-  - MaxRAMPercentage set to 75% to leave headroom for the JVM itself
+  - Explicit heap size settings (-Xms410m -Xmx410m) set to 80% of container memory limit
+  - Fixed min/max heap size to prevent resizing overhead and provide predictable memory usage
 
 ### Network Configuration
 - The application exposes port 8080 internally

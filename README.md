@@ -113,6 +113,42 @@ The core application exposes endpoints to generate controlled CPU and memory loa
 - HPA configured to scale based on CPU utilization (70% threshold)
 - Service for internal and external access
 
+### JVM and Kubernetes Autoscaling
+
+This project demonstrates an important consideration when running JVM applications with Kubernetes HPA:
+
+#### The Problem
+
+When using percentage-based JVM heap settings (like `-XX:MaxRAMPercentage=75.0`) with memory-based HPA:
+1. The JVM allocates a large percentage of the container's memory upfront
+2. This immediate allocation can trigger memory-based autoscaling prematurely
+3. The result is unnecessary scaling events and resource inefficiency
+
+This is especially problematic when Helm charts enable both CPU and memory-based autoscaling by default.
+
+#### The Solution
+
+This demo implements two key practices to address this issue:
+
+1. **Explicit JVM Heap Settings**: 
+   - We use `-Xms410m -Xmx410m` instead of percentage-based settings
+   - These values are calculated as 80% of the container's memory limit (512Mi)
+   - Setting both min and max to the same value prevents heap resizing overhead
+
+2. **Balanced HPA Configuration**:
+   - We demonstrate both proper configuration and common mistakes
+   - The `hpa-mistake-memory.yaml` shows how memory metrics can cause premature scaling
+   - The main HPA configuration focuses on CPU utilization which is more stable for JVM applications
+
+#### Best Practices
+
+When running JVM applications with Kubernetes HPA:
+- Always consider the interaction between JVM memory settings and HPA thresholds
+- Use explicit heap settings rather than percentage-based allocation
+- Size the heap appropriately based on container limits (typically 70-80%)
+- Be cautious with memory-based autoscaling for JVM applications
+- Monitor both JVM heap usage and container memory usage
+
 ### Monitoring Stack
 
 - Prometheus for collecting and storing metrics
