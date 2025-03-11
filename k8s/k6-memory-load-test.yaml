@@ -1,0 +1,61 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: autoscale-demo-memory-load-test
+  labels:
+    app: k6
+spec:
+  parallelism: 1
+  script:
+    configMap:
+      name: k6-memory-load-test-script
+      file: test.js
+  separate: false
+  # Enable Prometheus metrics output with remote write URL
+  arguments: --out experimental-prometheus-rw --env K6_PROMETHEUS_RW_SERVER_URL=http://prometheus-operated:9090/api/v1/write
+  cleanup: 'post'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-memory-load-test-script
+data:
+  test.js: |
+    import http from 'k6/http';
+    import { sleep, check } from 'k6';
+
+    export const options = {
+      stages: [
+        // Gradual ramp-up: 0 to 20 users over 30 seconds
+        { duration: '30s', target: 20 },
+        // Steady load for 1 minute
+        { duration: '1m', target: 20 },
+        // Increase to peak: 20 to 50 users over 1 minute
+        { duration: '1m', target: 50 },
+        // Sustain peak load for 2 minutes
+        { duration: '2m', target: 50 },
+        // Gradual ramp-down over 30 seconds
+        { duration: '30s', target: 0 },
+      ],
+      thresholds: {
+        http_req_failed: ['rate<0.01'], // HTTP errors should be less than 1%
+        http_req_duration: ['p(95)<2000'], // 95% of requests should be below 2000ms (memory operations are slower)
+      },
+    };
+
+    export default function() {
+      // Randomize the memory load parameters to create more realistic patterns
+      const duration = Math.floor(Math.random() * 10) + 20; // 20-30 seconds
+      const sizeInMB = Math.floor(Math.random() * 100) + 100; // 100-200 MB
+      
+      const response = http.get(`http://autoscale-demo-memory:80/api/memory-load?durationSeconds=${duration}&sizeInMB=${sizeInMB}`);
+      
+      // Validate the response
+      check(response, {
+        'status was 200': (r) => r.status === 200,
+        'response contains expected text': (r) => r.body.includes('Memory load completed'),
+      });
+      
+      // Add randomized sleep to simulate real user behavior
+      sleep(Math.random() * 5 + 5); // 5-10 seconds (longer sleep for memory tests)
+    }

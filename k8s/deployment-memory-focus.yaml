@@ -1,0 +1,61 @@
+# k8s/deployment-memory-focus.yaml
+# Deployment with memory configuration for memory-based scaling demonstration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscale-demo-memory
+  labels:
+    app: autoscale-demo-memory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoscale-demo-memory
+  template:
+    metadata:
+      labels:
+        app: autoscale-demo-memory
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: autoscale-demo
+        image: autoscale-demo:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "384Mi"  # Higher memory request (1.5x the baseline)
+          limits:
+            memory: "512Mi"  # Same memory limit
+        env:
+        - name: JAVA_OPTS
+          value: "-XX:+UseContainerSupport -Xms410m -Xmx410m"  # Same JVM heap settings
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoscale-demo-memory
+  labels:
+    app: autoscale-demo-memory
+spec:
+  selector:
+    app: autoscale-demo-memory
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP

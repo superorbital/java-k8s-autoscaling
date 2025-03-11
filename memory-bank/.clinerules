@@ -18,6 +18,17 @@
 - Resource limits and requests should always be specified
 - Use NodePort services for demo accessibility
 - HPA should be configured with demo-friendly stabilization windows (faster than production defaults)
+- When creating multiple deployment scenarios:
+  - Keep service names consistent with deployment names
+  - Use clear naming conventions that indicate the purpose (e.g., high-cpu, low-cpu)
+  - Maintain consistent labels across related resources
+
+### Resource Requests and Limits
+- CPU requests directly affect when autoscaling occurs
+- Higher CPU requests delay scaling but improve resource utilization
+- Lower CPU requests trigger earlier scaling but may waste resources
+- Memory requests should be >= JVM heap size for JVM applications
+- Document the relationship between resource settings and scaling behavior
 
 ### Java Application
 - Use container-aware JVM settings with explicit heap sizes
@@ -38,10 +49,16 @@
   - Ensure JVM heap settings align with HPA thresholds
   - Consider disabling memory-based scaling for JVM applications
   - Document the interaction between JVM memory settings and HPA configuration
+- For memory-based scaling demonstrations:
+  - Set memory request higher than JVM heap size to prevent immediate scaling
+  - Implement controlled memory allocation that can be held for a specified duration
+  - Include proper cleanup to prevent memory leaks
 
 ### Monitoring
 - Prometheus and Grafana are the standard monitoring tools
 - Expose metrics via Spring Actuator and Micrometer
+- Consider creating dedicated dashboards for specific demonstration scenarios
+- Include visualizations that show the relationship between resource usage and scaling events
 
 ## User Preferences
 - Prefer comprehensive documentation
@@ -66,6 +83,15 @@
 - Use the TestRun CRD instead of the deprecated K6 CRD
 - Configure load tests with realistic ramp-up and ramp-down periods
 - Include appropriate thresholds for error rates and response times
+- Create specialized load tests for different demonstration scenarios
+- For CPU-focused tests:
+  - Adjust intensity and duration parameters to create appropriate load patterns
+  - Use higher user counts for high CPU request scenarios
+  - Use lower user counts for low CPU request scenarios
+- For memory-focused tests:
+  - Allocate memory in smaller chunks to avoid allocation failures
+  - Include longer hold times to demonstrate memory usage patterns
+  - Use longer sleep times between requests to allow for memory operations
 
 ## Project Evolution
 - Started with eclipse-temurin base image
@@ -81,4 +107,13 @@
 - Use `rebuild-deploy.sh` for testing in the Kubernetes environment
 - Use `monitor.sh` to set up monitoring terminals for observing autoscaling behavior
 - Use `setup-demo.sh` for initial environment setup
-- Use `run-demo.sh` for guided demonstration of autoscaling concepts
+- Use `run-demo.sh` for basic guided demonstration of autoscaling concepts
+- Use `run-demo-enhanced.sh` for comprehensive demonstration of how resource requests/limits affect autoscaling
+
+## Demo Script Patterns
+- Organize demo scripts into clear scenarios with distinct configurations
+- Include detailed narration points for each scenario
+- Provide cleanup between scenarios to prevent interference
+- Include summary sections that reinforce key concepts
+- Use consistent formatting for resource configuration explanations
+- Calculate and explain the actual values that trigger scaling (e.g., 70% of 200m = 140m)

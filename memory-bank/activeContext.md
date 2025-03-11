@@ -1,9 +1,41 @@
 # Active Context: Kubernetes Autoscaling Demo
 
 ## Current Work Focus
-The current focus is on resolving Docker image build issues. Specifically, the project encountered an error with the base image `eclipse-temurin:17-jre-alpine` which could not be resolved by Docker.
+The current focus is on enhancing the demo to better illustrate how changes to resource requests/limits affect autoscaling behavior. This enhancement addresses user feedback: "I think a lot of our users are trying to understand how changes to requests/limits affect the autoscaling. If the demo / discussion can illustrate that, I think it would be great."
 
 ## Recent Changes
+
+### Latest Enhancements
+1. **Memory Load Generation**: Added a new endpoint to generate controlled memory load:
+   - Implemented `/api/memory-load` endpoint in LoadController
+   - Supports configurable duration and memory size parameters
+   - Includes proper memory allocation and cleanup with graceful shutdown support
+   - Allows demonstration of memory-based autoscaling behavior
+
+2. **Multiple Resource Configuration Scenarios**: Created additional deployment configurations to demonstrate how different resource settings affect scaling:
+   - High CPU request (400m) deployment to show delayed scaling
+   - Low CPU request (100m) deployment to show earlier scaling
+   - Memory-focused deployment with higher memory request (384Mi)
+   - Each with corresponding HPA configuration
+
+3. **Enhanced Load Testing**: Created specialized k6 load tests for each scenario:
+   - CPU-focused load tests with different intensity profiles
+   - Memory-focused load test that allocates and holds memory
+   - Each test targets the specific deployment it's designed to test
+
+4. **Enhanced Demo Script**: Created a comprehensive demo script (`run-demo-enhanced.sh`) that:
+   - Demonstrates each resource configuration scenario sequentially
+   - Provides detailed narration about how resource changes affect scaling
+   - Includes clear explanations of how Kubernetes calculates resource percentages
+   - Summarizes best practices for setting requests/limits for effective autoscaling
+
+5. **Updated Documentation**: Enhanced the README.md with:
+   - Detailed explanation of how resource requests/limits affect autoscaling
+   - Information about the new memory load generation capabilities
+   - Instructions for running the enhanced demo
+   - Best practices for resource configuration in Kubernetes
+
+### Previous Changes
 1. **JVM Memory Configuration Update**: Modified the JVM heap settings to address autoscaling issues:
    - Changed from percentage-based settings (`-XX:MaxRAMPercentage=75.0`) to explicit heap settings (`-Xms410m -Xmx410m`)
    - Set heap size to exactly 80% of the container's memory limit (512Mi)
@@ -33,12 +65,37 @@ The current focus is on resolving Docker image build issues. Specifically, the p
     - Updated service selectors to match the TestRun pods
 
 ## Next Steps
-1. **Complete Setup**: Run the full setup script to verify the entire demo environment works correctly.
-2. **Test Autoscaling**: Run the load tests to verify that the autoscaling functionality works as expected.
-3. **Test Development Workflows**: Verify the new development scripts work as expected.
-4. **Document Results**: Update documentation with any findings or additional configuration needed.
+1. **Test Enhanced Demo**: Run the enhanced demo script to verify all scenarios work correctly.
+2. **Gather Feedback**: Collect feedback on the enhanced demo to see if it effectively illustrates the relationship between resource requests/limits and autoscaling.
+3. **Consider Additional Visualizations**: Explore creating dedicated Grafana dashboards that better visualize the relationship between resource usage and scaling events.
+4. **Document Results**: Update documentation with any findings or additional insights from testing the enhanced scenarios.
 
 ## Active Decisions and Considerations
+
+### Resource Configuration Scenarios
+- **Decision**: Created three distinct resource configurations (baseline, high CPU, low CPU, memory-focused)
+- **Rationale**: Demonstrates the full spectrum of how resource settings affect scaling behavior
+- **Considerations**:
+  - High CPU request (400m) shows delayed scaling but better resource utilization
+  - Low CPU request (100m) shows earlier scaling but potentially wasted resources
+  - Memory-focused configuration demonstrates the challenges of memory-based scaling with JVM applications
+
+### Memory Load Implementation
+- **Decision**: Implemented memory allocation in chunks with explicit touching of memory
+- **Rationale**: Ensures memory is actually allocated and not optimized away
+- **Considerations**:
+  - Limited maximum allocation to 350MB to prevent OOM issues
+  - Implemented proper cleanup to prevent memory leaks
+  - Added graceful shutdown support to handle interruptions
+
+### Demo Script Structure
+- **Decision**: Created a separate enhanced demo script rather than modifying the original
+- **Rationale**: Preserves the simpler original demo while offering a more comprehensive option
+- **Benefits**:
+  - Users can choose between a simpler or more detailed demonstration
+  - Each scenario is clearly separated with its own explanation
+  - Includes a comprehensive summary of best practices
+
 
 ### Docker Base Image Selection
 - **Decision**: Switched to Amazon Corretto as the base image

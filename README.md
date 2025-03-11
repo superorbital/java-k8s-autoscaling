@@ -71,6 +71,22 @@ This script will:
 6. Show common autoscaling mistakes
 7. Clean up when done
 
+#### Enhanced Demo: Understanding Resource Requests/Limits Impact
+
+```bash
+chmod +x run-demo-enhanced.sh
+./run-demo-enhanced.sh
+```
+
+This enhanced script demonstrates how changes to resource requests/limits affect autoscaling through multiple scenarios:
+
+1. **Baseline Configuration**: Standard setup with 200m CPU request
+2. **Higher CPU Request**: Shows how doubling CPU request (400m) delays scaling
+3. **Lower CPU Request**: Shows how halving CPU request (100m) triggers earlier scaling
+4. **Memory-Based Scaling**: Demonstrates the challenges of memory-based scaling with JVM applications
+
+Each scenario includes detailed narration points explaining the relationship between resource configuration and scaling behavior.
+
 ### Accessing the Components
 
 - Application: http://localhost:8080
@@ -102,9 +118,10 @@ The project includes a couple of scripts to improve the development experience:
 
 ### Spring Boot Application
 
-The core application exposes an endpoint to generate controlled CPU load:
+The core application exposes endpoints to generate controlled CPU and memory load:
 
 - `/api/cpu-load?durationSeconds=5&intensity=80`: Generates CPU load with configurable duration and intensity
+- `/api/memory-load?durationSeconds=30&sizeInMB=100`: Allocates and holds memory with configurable size and duration
 
 ### Kubernetes Configuration
 
@@ -112,9 +129,50 @@ The core application exposes an endpoint to generate controlled CPU load:
 - HPA configured to scale based on CPU utilization (70% threshold)
 - Service for internal and external access
 
+### Resource Requests/Limits and Autoscaling
+
+This project demonstrates how resource requests and limits affect Kubernetes autoscaling behavior:
+
+#### How Kubernetes Calculates Resource Utilization
+
+Kubernetes HPA calculates resource utilization as a percentage of the resource **request**, not the limit:
+
+```
+Utilization % = (Current Usage / Resource Request) * 100%
+```
+
+This means:
+- With a CPU request of 200m, the pod will scale when using ~140m CPU (70% of 200m)
+- With a CPU request of 400m, the pod will scale when using ~280m CPU (70% of 400m)
+- With a CPU request of 100m, the pod will scale when using ~70m CPU (70% of 100m)
+
+#### Impact of Different Resource Configurations
+
+1. **Higher CPU Request**:
+   - Delays scaling (requires more actual CPU usage to reach threshold)
+   - Results in fewer, more utilized pods
+   - Can reduce pod churn but might impact performance under sudden load spikes
+
+2. **Lower CPU Request**:
+   - Triggers earlier scaling (requires less actual CPU usage to reach threshold)
+   - Results in more pods, each less utilized
+   - Can improve performance under sudden load spikes but increases resource costs
+
+3. **Memory Request Considerations**:
+   - Memory request should be >= JVM heap size to prevent premature scaling
+   - Memory-based scaling can be problematic for JVM applications due to upfront allocation
+
+#### Best Practices
+
+- Set CPU request based on actual application needs and desired scaling behavior
+- For JVM apps, set memory request >= JVM heap size
+- Consider disabling memory-based scaling for JVM applications
+- Use explicit JVM heap settings instead of percentage-based allocation
+- Monitor both resource usage and scaling events to fine-tune settings
+
 ### JVM and Kubernetes Autoscaling
 
-This project demonstrates an important consideration when running JVM applications with Kubernetes HPA:
+This project demonstrates important considerations when running JVM applications with Kubernetes HPA:
 
 #### The Problem
 

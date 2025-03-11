@@ -1,0 +1,58 @@
+# k8s/deployment-low-cpu-request.yaml
+# Deployment with lower CPU request to demonstrate earlier scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscale-demo-low-cpu
+  labels:
+    app: autoscale-demo-low-cpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoscale-demo-low-cpu
+  template:
+    metadata:
+      labels:
+        app: autoscale-demo-low-cpu
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: autoscale-demo
+        image: autoscale-demo:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "100m"  # Lower CPU request (half the baseline)
+            memory: "256Mi"
+          limits:
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoscale-demo-low-cpu
+  labels:
+    app: autoscale-demo-low-cpu
+spec:
+  selector:
+    app: autoscale-demo-low-cpu
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP

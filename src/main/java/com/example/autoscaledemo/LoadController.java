@@ -89,6 +89,102 @@ public class LoadController {
     }
 
 
+    @GetMapping("/api/memory-load")
+    public String generateMemoryLoad(
+            @RequestParam(value = "durationSeconds", defaultValue = "30") int durationSeconds,
+            @RequestParam(value = "sizeInMB", defaultValue = "100") int sizeInMB) {
+        
+        logger.info("Received memory load request: duration={}s, sizeInMB={}", durationSeconds, sizeInMB);
+        
+        // If we're shutting down, return immediately
+        if (shuttingDown.get()) {
+            logger.info("Application is shutting down, skipping memory load generation");
+            return "Application is shutting down, memory load generation skipped";
+        }
+        
+        // Limit the size to prevent OOM issues
+        sizeInMB = Math.min(Math.max(sizeInMB, 1), 350); // Max 350MB to stay within container limits
+        
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + (durationSeconds * 1000L);
+        
+        // Create a list to hold the byte arrays (to prevent GC from reclaiming them)
+        List<byte[]> memoryBlocks = new ArrayList<>();
+        
+        try {
+            // Allocate memory in smaller chunks to avoid large allocation failures
+            int chunkSizeMB = 10;
+            int numChunks = sizeInMB / chunkSizeMB;
+            int remainderMB = sizeInMB % chunkSizeMB;
+            
+            logger.info("Allocating {}MB in {}MB chunks plus {}MB remainder", 
+                       sizeInMB, chunkSizeMB, remainderMB);
+            
+            // Allocate the chunks
+            for (int i = 0; i < numChunks && !shuttingDown.get(); i++) {
+                memoryBlocks.add(new byte[chunkSizeMB * 1024 * 1024]);
+                logger.debug("Allocated chunk {}/{} ({}MB)", i+1, numChunks, chunkSizeMB);
+                
+                // Touch the memory to ensure it's actually allocated
+                touchMemory(memoryBlocks.get(i));
+                
+                // Brief pause between allocations
+                TimeUnit.MILLISECONDS.sleep(50);
+            }
+            
+            // Allocate the remainder
+            if (remainderMB > 0 && !shuttingDown.get()) {
+                memoryBlocks.add(new byte[remainderMB * 1024 * 1024]);
+                logger.debug("Allocated remainder chunk ({}MB)", remainderMB);
+                touchMemory(memoryBlocks.get(memoryBlocks.size() - 1));
+            }
+            
+            logger.info("Memory allocation complete. Holding for duration...");
+            
+            // Hold the memory for the specified duration
+            while (System.currentTimeMillis() < endTime && !shuttingDown.get()) {
+                // Periodically touch the memory to prevent optimizations
+                for (int i = 0; i < memoryBlocks.size() && !shuttingDown.get(); i++) {
+                    touchMemory(memoryBlocks.get(i));
+                }
+                
+                // Sleep briefly
+                TimeUnit.MILLISECONDS.sleep(500);
+            }
+            
+        } catch (InterruptedException e) {
+            logger.info("Memory load generation interrupted during sleep");
+            Thread.currentThread().interrupt();
+        } catch (OutOfMemoryError e) {
+            logger.error("Out of memory during allocation: {}", e.getMessage());
+            return "Memory allocation failed: Out of memory. Try a smaller size.";
+        } finally {
+            // Clear the references to allow GC
+            memoryBlocks.clear();
+            // Suggest garbage collection
+            System.gc();
+        }
+        
+        // Check if we stopped due to shutdown
+        if (shuttingDown.get()) {
+            logger.info("Memory load generation stopped due to application shutdown");
+        }
+        
+        long actualDuration = System.currentTimeMillis() - startTime;
+        logger.info("Completed memory load: {}MB held for {}ms", sizeInMB, actualDuration);
+        
+        return String.format("Memory load completed: %dMB held for %.2f seconds", 
+                             sizeInMB, actualDuration/1000.0);
+    }
+    
+    // Helper method to ensure memory is actually allocated
+    private void touchMemory(byte[] memory) {
+        // Write to every 1024th byte to ensure pages are allocated
+        for (int i = 0; i < memory.length; i += 1024) {
+            memory[i] = 1;
+        }
+    }
+
     @GetMapping("/")
     public String home() {
         return "Autoscaling Demo App is running!";

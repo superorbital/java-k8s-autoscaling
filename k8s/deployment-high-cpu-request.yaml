@@ -1,0 +1,58 @@
+# k8s/deployment-high-cpu-request.yaml
+# Deployment with higher CPU request to demonstrate delayed scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscale-demo-high-cpu
+  labels:
+    app: autoscale-demo-high-cpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoscale-demo-high-cpu
+  template:
+    metadata:
+      labels:
+        app: autoscale-demo-high-cpu
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: autoscale-demo
+        image: autoscale-demo:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "400m"  # Higher CPU request (double the baseline)
+            memory: "256Mi"
+          limits:
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoscale-demo-high-cpu
+  labels:
+    app: autoscale-demo-high-cpu
+spec:
+  selector:
+    app: autoscale-demo-high-cpu
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP

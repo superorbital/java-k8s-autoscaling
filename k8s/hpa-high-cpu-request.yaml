@@ -1,0 +1,25 @@
+# k8s/hpa-high-cpu-request.yaml
+# HPA for the high CPU request deployment
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: autoscale-demo-high-cpu
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: autoscale-demo-high-cpu
+  minReplicas: 1
+  maxReplicas: 10
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30  # Demo-friendly: faster scaling
+    scaleDown:
+      stabilizationWindowSeconds: 60  # Demo-friendly: faster scaling
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
